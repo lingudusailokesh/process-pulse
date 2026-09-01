@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # MySQL 8.0 Enterprise Database
+  mysql_db:
+    image: mysql:8.0
+    container_name: process_pulse_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: process_pulse_db
+      MYSQL_USER: pulse_user
+      MYSQL_PASSWORD: pulse_secure_password_2026
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./data/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pulse_network
+
+  # FastAPI Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: process_pulse_backend
+    restart: always
+    depends_on:
+      mysql_db:
+        condition: service_healthy
+    environment:
+      - MYSQL_HOST=mysql_db
+      - MYSQL_PORT=3306
+      - MYSQL_USER=pulse_user
+      - MYSQL_PASSWORD=pulse_secure_password_2026
+      - MYSQL_DB=process_pulse_db
+      - SECRET_KEY=deloitte_process_pulse_super_secret_jwt_key_2026_x99
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ml_models:/app/ml_models
+      - ./frontend:/app/frontend
+    networks:
+      - pulse_network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  pulse_network:
+    driver: bridge

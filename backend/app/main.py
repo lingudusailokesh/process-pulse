@@ -1,0 +1,80 @@
+import time
+import os
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
+
+from app.core.config import settings
+from app.db.session import engine
+from app.db.base import Base
+import app.models # Register all models
+
+# API Routers
+from app.api.v1.auth import router as auth_router
+from app.api.v1.processes import router as processes_router
+from app.api.v1.analytics import router as analytics_router
+from app.api.v1.process_mining import router as pm_router
+from app.api.v1.prediction import router as prediction_router
+from app.api.v1.ai import router as ai_router
+
+# Initialize Tables
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    description="Enterprise Process Mining & Operational Intelligence Engine tailored for Technology Consulting & Process Improvement.",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+
+# CORS Configuration for Frontend Integration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Request Timing & Audit Middleware
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time-Sec"] = f"{process_time:.4f}"
+    return response
+
+# Register API v1 Routers
+app.include_router(auth_router, prefix=settings.API_V1_STR)
+app.include_router(processes_router, prefix=settings.API_V1_STR)
+app.include_router(analytics_router, prefix=settings.API_V1_STR)
+app.include_router(pm_router, prefix=settings.API_V1_STR)
+app.include_router(prediction_router, prefix=settings.API_V1_STR)
+app.include_router(ai_router, prefix=settings.API_V1_STR)
+
+# Mount Frontend static files if directory exists
+frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend"))
+if os.path.exists(frontend_dir):
+    app.mount("/dashboard", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+
+@app.get("/health", tags=["System Health"])
+def health_check():
+    """Health check endpoint for container orchestrators and load balancers."""
+    return {
+        "status": "HEALTHY",
+        "service": settings.PROJECT_NAME,
+        "version": settings.VERSION,
+        "database_connected": True
+    }
+
+@app.get("/", tags=["Root"])
+def root_redirect():
+    """Root redirect endpoint pointing to interactive OpenAPI docs and dashboard."""
+    return {
+        "message": "Welcome to ProcessPulse Operations Intelligence API",
+        "api_docs": "/docs",
+        "dashboard_ui": "/dashboard/"
+    }

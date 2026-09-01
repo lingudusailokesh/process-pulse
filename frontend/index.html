@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProcessPulse | Enterprise Process Mining & Operations Intelligence</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Cytoscape.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="min-h-screen bg-[#0b0f19] text-slate-100 flex flex-col">
+
+  <!-- TOP APP HEADER -->
+  <header class="bg-[#0f172a] border-b border-slate-800 sticky top-0 z-40 px-6 py-3.5 flex items-center justify-between shadow-lg">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center font-bold text-emerald-400 text-lg">
+        P
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base font-bold text-slate-100 tracking-tight">ProcessPulse</h1>
+          <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ENTERPRISE</span>
+        </div>
+        <p class="text-xs text-slate-400">Operations Intelligence & Process Mining Platform</p>
+      </div>
+    </div>
+
+    <!-- PROCESS SELECTOR & CONTROLS -->
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-300">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 live-indicator"></span>
+        <span>Process: <strong class="text-slate-100 font-medium">Employee Onboarding (ONBOARD_V1)</strong></span>
+      </div>
+
+      <button id="btn-refresh" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition-colors flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        Sync Telemetry
+      </button>
+
+      <div class="flex items-center gap-2 border-l border-slate-800 pl-3">
+        <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-slate-300">
+          EA
+        </div>
+        <div class="text-left hidden md:block">
+          <p class="text-xs font-semibold text-slate-200 leading-none">Enterprise Analyst</p>
+          <p class="text-[10px] text-slate-400">Operations Transformation</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN DASHBOARD CONTENT -->
+  <main class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
+
+    <!-- KPI RIBBON -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div class="kpi-card p-4 rounded-xl">
+        <p class="text-xs font-medium text-slate-400">Total Cases Analyzed</p>
+        <h3 id="kpi-total-cases" class="text-2xl font-bold text-slate-100 mt-1 font-mono">--</h3>
+        <p id="kpi-cases-sub" class="text-xs text-slate-400 mt-1">-- Completed | -- Active</p>
+      </div>
+
+      <div class="kpi-card p-4 rounded-xl">
+        <p class="text-xs font-medium text-slate-400">Median Cycle Time</p>
+        <h3 id="kpi-median-time" class="text-2xl font-bold text-cyan-400 mt-1 font-mono">--</h3>
+        <p id="kpi-median-time-sub" class="text-xs text-slate-400 mt-1">Benchmark: 120.0h Target</p>
+      </div>
+
+      <div class="kpi-card p-4 rounded-xl">
+        <p class="text-xs font-medium text-slate-400">SLA Compliance Rate</p>
+        <h3 id="kpi-sla-rate" class="text-2xl font-bold text-emerald-400 mt-1 font-mono">--</h3>
+        <p class="text-xs text-slate-400 mt-1">Target: &gt;90% SLA Compliance</p>
+      </div>
+
+      <div class="kpi-card p-4 rounded-xl">
+        <p class="text-xs font-medium text-slate-400">Rework / Loop Rate</p>
+        <h3 id="kpi-rework-rate" class="text-2xl font-bold text-rose-400 mt-1 font-mono">--</h3>
+        <p class="text-xs text-rose-400/80 mt-1">IT-to-HR Bounce-back loops</p>
+      </div>
+
+      <div class="kpi-card p-4 rounded-xl">
+        <p class="text-xs font-medium text-slate-400">Total Operational Delay Waste</p>
+        <h3 id="kpi-waste-cost" class="text-2xl font-bold text-amber-400 mt-1 font-mono">--</h3>
+        <p id="kpi-waste-cost-sub" class="text-xs text-slate-400 mt-1">Sum of Bottleneck Delays</p>
+      </div>
+    </section>
+
+    <!-- TABBED NAVIGATION -->
+    <div class="border-b border-slate-800 flex items-center gap-6 text-sm">
+      <button class="nav-tab active pb-3 font-semibold text-slate-300" data-target="tab-process-mining">
+        Process Mining (DFG Map)
+      </button>
+      <button class="nav-tab pb-3 text-slate-400 hover:text-slate-200" data-target="tab-bottlenecks">
+        Bottleneck Severity & Delay Costs
+      </button>
+      <button class="nav-tab pb-3 text-slate-400 hover:text-slate-200" data-target="tab-triage">
+        Predictive SLA Triage (Live ML)
+      </button>
+      <button class="nav-tab pb-3 text-slate-400 hover:text-slate-200" data-target="tab-variants">
+        Path Variants & Conformance
+      </button>
+      <button class="nav-tab pb-3 text-slate-400 hover:text-slate-200" data-target="tab-ai-advisory">
+        Executive AI Advisory (Grounded)
+      </button>
+    </div>
+
+    <!-- TAB 1: PROCESS MINING GRAPH -->
+    <section id="tab-process-mining" class="tab-content space-y-4">
+      <div class="bg-[#0f172a] border border-slate-800 rounded-xl p-5 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-sm font-bold text-slate-100 uppercase tracking-wider">Directly-Follows Graph (DFG) Process Discovery</h2>
+            <p class="text-xs text-slate-400 mt-0.5">PM4Py discovered transition flows. Red edges indicate rework loops; nodes show median stage duration.</p>
+          </div>
+          <div class="flex items-center gap-4 text-xs">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Start / End</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> Nominal Step</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Bottleneck &gt;25h</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 border-t-2 border-dashed border-rose-500 inline-block"></span> Rework Loop</span>
+          </div>
+        </div>
+
+        <div class="relative">
+          <div id="cy-container" class="relative">
+            <!-- Loading overlay -->
+            <div id="loading-indicator" class="absolute inset-0 bg-slate-950/70 flex items-center justify-center rounded-xl z-20 hidden">
+              <div class="text-center">
+                <div class="inline-block animate-spin w-8 h-8 border-2 border-emerald-400 border-t-transparent rounded-full mb-2"></div>
+                <p class="text-xs text-slate-300">Computing Directly-Follows Graph...</p>
+              </div>
+            </div>
+          </div>
+          <!-- Graph Zoom & Locate Toolbar -->
+          <div class="absolute bottom-3 right-3 z-10 flex items-center gap-1.5 bg-slate-900/95 border border-slate-700 rounded-lg p-1.5 shadow-xl backdrop-blur">
+            <button id="btn-cy-fit" class="px-2.5 py-1 flex items-center gap-1.5 text-emerald-400 bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/30 rounded text-xs font-semibold transition-all shadow-sm" title="Locate & Center Graph">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              Locate / Fit Graph
+            </button>
+            <div class="w-px h-4 bg-slate-700"></div>
+            <button id="btn-cy-zoom-in" class="w-7 h-7 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 rounded text-base font-bold transition-colors" title="Zoom In at Cursor">+</button>
+            <button id="btn-cy-zoom-out" class="w-7 h-7 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 rounded text-base font-bold transition-colors" title="Zoom Out">−</button>
+            <button id="btn-cy-reset" class="px-2 h-7 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 rounded text-xs font-mono transition-colors" title="Reset to 100% Zoom">1:1</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM CHARTS GRID -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-[#0f172a] border border-slate-800 rounded-xl p-5">
+          <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-3">SLA Compliance Distribution</h3>
+          <div class="h-64 relative">
+            <canvas id="sla-chart-canvas"></canvas>
+          </div>
+        </div>
+        <div class="bg-[#0f172a] border border-slate-800 rounded-xl p-5">
+          <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-3">Department Handling Duration vs SLA Breach %</h3>
+          <div class="h-64 relative">
+            <canvas id="dept-chart-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: BOTTLENECKS & BSI RANKING -->
+    <section id="tab-bottlenecks" class="tab-content hidden space-y-6">
+      <div class="bg-[#0f172a] border border-slate-800 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-sm font-bold text-slate-100 uppercase tracking-wider">Bottleneck Severity Index (BSI) & Delay Cost Matrix</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Deterministic quantitative ranking of process stages driving operational inefficiency.</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-xs uppercase text-slate-400 tracking-wider">
+                <th class="py-3 px-4">Stage Name</th>
+                <th class="py-3 px-4">Department</th>
+                <th class="py-3 px-4">Median Duration</th>
+                <th class="py-3 px-4">Rework Rate (%)</th>
+                <th class="py-3 px-4">Severity Tier (BSI)</th>
+                <th class="py-3 px-4">Calculated Delay Waste</th>
+              </tr>
+            </thead>
+            <tbody id="bottlenecks-table-body">
+              <!-- Dynamically Populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="bg-[#0f172a] border border-slate-800 rounded-xl p-5">
+        <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-3">Stage Bottleneck Severity Index Comparison</h3>
+        <div class="h-64 relative">
+          <canvas id="bottleneck-chart-canvas"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: PREDICTIVE SLA TRIAGE (LIVE ML) -->
+    <section id="tab-triage" class="tab-content hidden space-y-4">
+      <div class="bg-[#0f172a] border border-slate-800 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-sm font-bold text-slate-100 uppercase tracking-wider">Live Case Triage & SLA Breach Risk Predictor</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Scikit-Learn Random Forest model evaluating active cases in real-time to prevent SLA non-compliance.</p>
+          </div>
+          <span id="triage-badge-count" class="px-2.5 py-1 text-xs font-bold rounded bg-cyan-950 text-cyan-400 border border-cyan-800">
+            -- Active In-Progress Cases Evaluated
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-xs uppercase text-slate-400 tracking-wider">
+                <th class="py-3 px-4">Case ID</th>
+                <th class="py-3 px-4">Department</th>
+                <th class="py-3 px-4">Current Stage</th>
+                <th class="py-3 px-4">Elapsed</th>
+                <th class="py-3 px-4">Breach Probability</th>
+                <th class="py-3 px-4">Risk Tier</th>
+                <th class="py-3 px-4">Recommended Intervention</th>
+              </tr>
+            </thead>
+            <tbody id="triage-table-body">
+              <!-- Dynamically Populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: PROCESS VARIANTS -->
+    <section id="tab-variants" class="tab-content hidden space-y-4">
+      <div class="bg-[#0f172a] border border-slate-800 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-sm font-bold text-slate-100 uppercase tracking-wider">Process Path Variant Discovery & Conformance</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Discovered workflow pathways, frequency distributions, and SLA non-conformance root causes.</p>
+          </div>
+        </div>
+
+        <div id="variants-list-container" class="space-y-4">
+          <!-- Dynamically Populated -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: AI EXECUTIVE ADVISORY -->
+    <section id="tab-ai-advisory" class="tab-content hidden space-y-4">
+      <div class="bg-[#0f172a] border border-slate-800 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-sm font-bold text-slate-100 uppercase tracking-wider">Executive Operational Transformation Briefing</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Grounded AI synthesis translating deterministic telemetry into C-suite recommendations with quantified ROI.</p>
+          </div>
+          <button id="btn-ai-refresh" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-slate-900 transition-colors flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Re-Generate Brief
+          </button>
+        </div>
+
+        <div id="ai-advisory-container">
+          <!-- Dynamically Populated -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- NODE DRILLDOWN MODAL -->
+  <div id="node-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#0f172a] border border-slate-700 rounded-xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 id="modal-node-title" class="text-base font-bold text-slate-100">Stage Details</h3>
+        <button id="btn-close-modal" class="text-slate-400 hover:text-slate-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="space-y-2.5 text-xs">
+        <div class="flex justify-between py-1 border-b border-slate-800/60">
+          <span class="text-slate-400">Department:</span>
+          <span id="modal-node-dept" class="font-semibold text-slate-200">--</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-800/60">
+          <span class="text-slate-400">Total Cases Executed:</span>
+          <span id="modal-node-count" class="font-semibold text-slate-200">--</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-800/60">
+          <span class="text-slate-400">Median Duration:</span>
+          <span id="modal-node-median" class="font-semibold text-cyan-400 font-mono">--</span>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-800/60">
+          <span class="text-slate-400">Average Duration:</span>
+          <span id="modal-node-avg" class="font-semibold text-slate-300 font-mono">--</span>
+        </div>
+        <div class="flex justify-between py-1">
+          <span class="text-slate-400">Bottleneck Classification:</span>
+          <span id="modal-node-status" class="font-bold">--</span>
+        </div>
+      </div>
+      <div class="pt-2">
+        <button onclick="document.getElementById('node-modal').classList.add('hidden')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 rounded-lg transition-colors">
+          Close Inspector
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-[#0f172a] border-t border-slate-800 py-3.5 px-6 text-center text-xs text-slate-400">
+    <p>ProcessPulse &bull; Enterprise Process Mining & Operational Intelligence Platform &bull; Built with FastAPI, MySQL, Pandas, PM4Py & JavaScript</p>
+  </footer>
+
+  <!-- App Script (ES6 Module) -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+/* ProcessPulse Enterprise Consulting Theme */
+:root {
+  --deloitte-green: #86bc25;
+  --deloitte-dark: #0f172a;
+  --deloitte-card: #1e293b;
+  --deloitte-border: #334155;
+  --deloitte-accent: #38bdf8;
+  --deloitte-danger: #f43f5e;
+  --deloitte-warning: #f59e0b;
+  --deloitte-success: #10b981;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #0b0f19;
+  color: #f1f5f9;
+}
+
+.kpi-card {
+  background: linear-gradient(145deg, #1e293b 0%, #151e2e 100%);
+  border: 1px solid #334155;
+  transition: all 0.25s ease-in-out;
+}
+
+.kpi-card:hover {
+  border-color: var(--deloitte-green);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(134, 188, 37, 0.15);
+}
+
+.nav-tab {
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.nav-tab.active {
+  color: var(--deloitte-green);
+  border-bottom-color: var(--deloitte-green);
+  font-weight: 600;
+}
+
+#cy-container {
+  width: 100%;
+  height: 420px;
+  background-color: #0d1321;
+  border-radius: 0.75rem;
+  border: 1px solid #1e293b;
+  overflow: hidden;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #86bc25;
+}
+
+.badge-risk-critical {
+  background-color: rgba(244, 63, 94, 0.15);
+  color: #f43f5e;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.badge-risk-high {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-risk-low {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Pulse animation for live updates */
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(134, 188, 37, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(134, 188, 37, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(134, 188, 37, 0); }
+}
+
+.live-indicator {
+  animation: pulse-green 2s infinite;
+}

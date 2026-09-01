@@ -1,0 +1,29 @@
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# ML artifacts / generated files
+*.pkl
+
+# OS / IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
