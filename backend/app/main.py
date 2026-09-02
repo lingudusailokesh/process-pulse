@@ -55,10 +55,23 @@ app.include_router(pm_router, prefix=settings.API_V1_STR)
 app.include_router(prediction_router, prefix=settings.API_V1_STR)
 app.include_router(ai_router, prefix=settings.API_V1_STR)
 
-# Mount Frontend static files if directory exists
-frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend"))
-if os.path.exists(frontend_dir):
-    app.mount("/dashboard", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+# Mount Frontend static files
+frontend_candidates = [
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend")),
+]
+
+frontend_dir = next(
+    (path for path in frontend_candidates if os.path.exists(path)),
+    None
+)
+
+if frontend_dir:
+    app.mount(
+        "/dashboard",
+        StaticFiles(directory=frontend_dir, html=True),
+        name="frontend"
+    )
 
 @app.get("/health", tags=["System Health"])
 def health_check():
