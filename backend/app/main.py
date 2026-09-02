@@ -55,10 +55,17 @@ app.include_router(pm_router, prefix=settings.API_V1_STR)
 app.include_router(prediction_router, prefix=settings.API_V1_STR)
 app.include_router(ai_router, prefix=settings.API_V1_STR)
 
+import logging
+from fastapi.responses import JSONResponse, RedirectResponse
+
+logger = logging.getLogger("process_pulse.main")
+
 # Mount Frontend static files
 frontend_candidates = [
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend")),
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend")),        # /app/frontend (Docker container)
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend")),   # <root>/frontend (Local dev)
+    os.path.abspath(os.path.join(os.getcwd(), "frontend")),                            # ./frontend (Working directory)
+    "/app/frontend",                                                                   # Direct container absolute path
 ]
 
 frontend_dir = next(
@@ -67,11 +74,19 @@ frontend_dir = next(
 )
 
 if frontend_dir:
+    logger.info(f"Frontend directory resolved to: {frontend_dir}")
     app.mount(
         "/dashboard",
         StaticFiles(directory=frontend_dir, html=True),
         name="frontend"
     )
+else:
+    logger.warning(f"Frontend directory not found among candidates: {frontend_candidates}")
+
+@app.get("/dashboard", include_in_schema=False)
+def dashboard_redirect():
+    """Redirect /dashboard to /dashboard/ to guarantee trailing slash compatibility."""
+    return RedirectResponse(url="/dashboard/", status_code=307)
 
 @app.get("/health", tags=["System Health"])
 def health_check():

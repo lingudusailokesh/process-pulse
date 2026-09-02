@@ -73,3 +73,17 @@ def test_ai_advisory_api(client: TestClient):
     assert "root_causes" in data
     assert "recommendations" in data
     assert len(data["recommendations"]) >= 1
+
+def test_dashboard_static_files(client: TestClient):
+    """Verify that frontend static files are properly mounted and served."""
+    # Test trailing slash HTML serving
+    response = client.get("/dashboard/")
+    assert response.status_code == 200
+    assert "<!DOCTYPE html>" in response.text or "ProcessPulse" in response.text
+    
+    # Test static assets
+    css_res = client.get("/dashboard/css/style.css")
+    assert css_res.status_code == 200
+    
+    js_res = client.get("/dashboard/js/app.js")
+    assert js_res.status_code == 200
