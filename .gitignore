@@ -21,6 +21,7 @@ env/
 
 # ML artifacts / generated files
 *.pkl
+!ml_models/sla_model.pkl
 
 # OS / IDE
 .vscode/
