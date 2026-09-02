@@ -3,9 +3,7 @@
  * Encapsulates all backend REST API communication using modern ES6+ async/await.
  */
 
-const API_BASE = window.location.origin.includes(':8000') 
-  ? '/api/v1' 
-  : 'http://127.0.0.1:8000/api/v1';
+const API_BASE = '/api/v1';
 
 class ApiClient {
   constructor() {

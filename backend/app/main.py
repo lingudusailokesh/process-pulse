@@ -21,6 +21,34 @@ from app.api.v1.ai import router as ai_router
 # Initialize Tables
 Base.metadata.create_all(bind=engine)
 
+def auto_seed_if_empty():
+    """Auto-populates empty database (e.g., fresh Railway MySQL) with 500 cases."""
+    from app.db.session import SessionLocal
+    from app.models.process import ProcessInstance
+    db = SessionLocal()
+    try:
+        if db.query(ProcessInstance).count() == 0:
+            import logging
+            logging.getLogger("process_pulse.main").info("Empty database detected. Auto-seeding initial dataset...")
+            try:
+                from data.seed_events import seed_database
+                seed_database()
+            except ImportError:
+                import sys
+                sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+                from data.seed_events import seed_database
+                seed_database()
+    except Exception as e:
+        import logging
+        logging.getLogger("process_pulse.main").warning(f"Auto-seed check: {e}")
+    finally:
+        db.close()
+
+try:
+    auto_seed_if_empty()
+except Exception:
+    pass
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
