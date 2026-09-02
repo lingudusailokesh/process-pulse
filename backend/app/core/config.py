@@ -34,9 +34,19 @@ class Settings(BaseSettings):
     @property
     def get_database_url(self) -> str:
         if self.DATABASE_URL:
-            return self.DATABASE_URL
-        # Default MySQL connection string
-        return f"mysql+pymysql://{self.MYSQL_USER}:{self.MYSQL_PASSWORD}@{self.MYSQL_HOST}:{self.MYSQL_PORT}/{self.MYSQL_DB}"
+            url = self.DATABASE_URL
+
+            # Railway provides mysql://, but this project uses PyMySQL.
+            if url.startswith("mysql://"):
+                url = "mysql+pymysql://" + url[len("mysql://"):]
+
+            return url
+
+        return (
+            f"mysql+pymysql://"
+            f"{self.MYSQL_USER}:{self.MYSQL_PASSWORD}"
+            f"@{self.MYSQL_HOST}:{self.MYSQL_PORT}/{self.MYSQL_DB}"
+        )
 
     model_config = {
         "case_sensitive": True,
