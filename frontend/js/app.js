@@ -2,9 +2,9 @@
  * ProcessPulse Main Application Coordinator (ES6+ Vanilla JavaScript)
  */
 
-import { api } from './api.js';
-import { renderSlaChart, renderDeptChart, renderBottleneckChart } from './charts.js';
-import { renderProcessGraph, fitProcessGraph } from './processGraph.js';
+import { api } from './api.js?v=1.1.0';
+import { renderSlaChart, renderDeptChart, renderBottleneckChart } from './charts.js?v=1.1.0';
+import { renderProcessGraph, fitProcessGraph } from './processGraph.js?v=1.1.0';
 
 // Application State
 const state = {
@@ -80,8 +80,8 @@ function setupEventListeners() {
 async function loadDashboardData() {
   setLoadingState(true);
   try {
-    // 1. Fetch Parallel Data
-    const [kpis, bottlenecks, departments, sla, dfg, variants, triage] = await Promise.all([
+    // 1. Fetch Parallel Data with fault-tolerant Promise.allSettled
+    const results = await Promise.allSettled([
       api.getOverviewKPIs(state.currentProcess),
       api.getBottlenecks(state.currentProcess),
       api.getDepartments(state.currentProcess),
@@ -91,32 +91,49 @@ async function loadDashboardData() {
       api.getTriageQueue(state.currentProcess)
     ]);
 
-    state.kpis = kpis;
-    state.bottlenecks = bottlenecks;
-    state.departments = departments;
-    state.sla = sla;
-    state.dfg = dfg;
-    state.variants = variants.variants || [];
-    state.triageQueue = triage || [];
+    const [kpisRes, bottlenecksRes, deptsRes, slaRes, dfgRes, variantsRes, triageRes] = results;
 
-    // 2. Render Components
-    renderKpis(kpis);
-    renderProcessGraph('cy-container', dfg, handleNodeClick);
-    renderBottlenecksTable(bottlenecks);
-    renderTriageQueueTable(state.triageQueue);
-    renderVariantsList(state.variants);
-    
-    // 3. Render Charts
-    renderSlaChart('sla-chart-canvas', sla);
-    renderDeptChart('dept-chart-canvas', departments);
-    renderBottleneckChart('bottleneck-chart-canvas', bottlenecks);
+    if (kpisRes.status === 'fulfilled' && kpisRes.value) {
+      state.kpis = kpisRes.value;
+      renderKpis(kpisRes.value);
+    }
+    if (bottlenecksRes.status === 'fulfilled' && bottlenecksRes.value) {
+      state.bottlenecks = bottlenecksRes.value;
+      renderBottlenecksTable(bottlenecksRes.value);
+      renderBottleneckChart('bottleneck-chart-canvas', bottlenecksRes.value);
+    }
+    if (deptsRes.status === 'fulfilled' && deptsRes.value) {
+      state.departments = deptsRes.value;
+      renderDeptChart('dept-chart-canvas', deptsRes.value);
+    }
+    if (slaRes.status === 'fulfilled' && slaRes.value) {
+      state.sla = slaRes.value;
+      renderSlaChart('sla-chart-canvas', slaRes.value);
+    }
+    if (dfgRes.status === 'fulfilled' && dfgRes.value) {
+      state.dfg = dfgRes.value;
+      renderProcessGraph('cy-container', dfgRes.value, handleNodeClick);
+    }
+    if (variantsRes.status === 'fulfilled' && variantsRes.value) {
+      state.variants = variantsRes.value.variants || [];
+      renderVariantsList(state.variants);
+    }
+    if (triageRes.status === 'fulfilled' && triageRes.value) {
+      state.triageQueue = triageRes.value || [];
+      renderTriageQueueTable(state.triageQueue);
+    }
 
-    // 4. Load AI Advisory in background
+    // Load AI Advisory in background
     loadAIAdvisory(false);
 
+    const allFailed = results.every(r => r.status === 'rejected');
+    if (allFailed) {
+      console.error('All API requests failed:', results);
+      showToast('Failed to connect to backend service. Check network or server logs.', 'error');
+    }
   } catch (error) {
     console.error('Failed to load dashboard telemetry:', error);
-    showToast('Failed to connect to backend service. Ensure FastAPI server is running.', 'error');
+    showToast('Failed to load dashboard telemetry.', 'error');
   } finally {
     setLoadingState(false);
   }
