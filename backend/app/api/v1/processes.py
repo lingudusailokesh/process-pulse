@@ -77,3 +77,23 @@ def get_case_events(case_id: str, db: Session = Depends(get_db)):
             "cost_incurred": e.cost_incurred
         } for e in events]
     }
+
+@router.post("/seed")
+@router.get("/seed")
+def trigger_seed_database(db: Session = Depends(get_db)):
+    """Seed or re-seed the database with 500 cases if empty or requested."""
+    try:
+        from data.seed_events import seed_database
+        seed_database()
+    except ImportError:
+        import sys
+        import os
+        sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..")))
+        from data.seed_events import seed_database
+        seed_database()
+    
+    total = db.query(ProcessInstance).count()
+    return {
+        "status": "SUCCESS",
+        "message": f"Database seeded successfully. Total cases in database: {total}"
+    }

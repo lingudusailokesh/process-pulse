@@ -27,15 +27,18 @@ def auto_seed_if_empty():
     from app.models.process import ProcessInstance
     db = SessionLocal()
     try:
-        if db.query(ProcessInstance).count() == 0:
+        case_count = db.query(ProcessInstance).count()
+        if case_count == 0:
             import logging
-            logging.getLogger("process_pulse.main").info("Empty database detected. Auto-seeding initial dataset...")
+            logging.getLogger("process_pulse.main").info("Empty database detected (0 cases). Auto-seeding initial 500 cases...")
             try:
                 from data.seed_events import seed_database
                 seed_database()
-            except ImportError:
+            except Exception:
                 import sys
-                sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+                root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+                if root_path not in sys.path:
+                    sys.path.insert(0, root_path)
                 from data.seed_events import seed_database
                 seed_database()
     except Exception as e:
